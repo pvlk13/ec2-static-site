@@ -12,11 +12,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare SSH
+        shell: bash
         run: |
+          set -e
           mkdir -p "$HOME/.ssh"
-          echo "${{ secrets.EC2_SSH_KEY }}" | base64 --decode > "$HOME/.ssh/id_rsa"
+
+          # Decode the base64 secret into id_rsa
+          echo "${{ secrets.EC2_SSH_KEY }}" | tr -d '\r' | base64 --decode > "$HOME/.ssh/id_rsa"
+
           chmod 600 "$HOME/.ssh/id_rsa"
           ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> "$HOME/.ssh/known_hosts"
+
+          echo "✅ SSH key file created with $(wc -l < "$HOME/.ssh/id_rsa") lines" 
+
 
       - name: Copy files via SSH
         uses: appleboy/scp-action@v1
