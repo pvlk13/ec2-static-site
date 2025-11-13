@@ -14,7 +14,7 @@ jobs:
       - name: Prepare SSH
         run: |
           mkdir -p "$HOME/.ssh"
-          echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 --decode > "$HOME/.ssh/id_rsa"
+          echo "${{ secrets.EC2_SSH_KEY }}" | base64 --decode > "$HOME/.ssh/id_rsa"
           chmod 600 "$HOME/.ssh/id_rsa"
           ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> "$HOME/.ssh/known_hosts"
 
