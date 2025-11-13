@@ -2,8 +2,7 @@ name: Deploy static site to EC2
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches: [ "main", "workflow_dispatch" ]
 
 jobs:
   deploy:
@@ -13,18 +12,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare SSH
-        shell: bash
         run: |
-          set -e
-          mkdir -p "$HOME/.ssh"
-
-          # Write the private key safely — fixes \n and CRLF issues
-          echo "${{ secrets.EC2_SSH_KEY }}" | tr -d '\r' | sed 's/\\n/\n/g' > "/Users/anilyadav/Downloads/vijaya-key-cloudwatch.pem"
-
-          chmod 600 "$HOME/.ssh/id_rsa"
-          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> "/Users/anilyadav/Downloads/vijaya-key-cloudwatch.pem"
-
-          echo "SSH key file created with $(wc -l < "/Users/anilyadav/Downloads/vijaya-key-cloudwatch.pem") lines"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Copy files via SSH
         uses: appleboy/scp-action@v1
@@ -34,7 +26,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: ./
           target: /home/${{ secrets.EC2_USER }}/temp
-          debug: true
 
       - name: Execute remote SSH commands to copy from temp to real folder
         uses: appleboy/ssh-action@v1
